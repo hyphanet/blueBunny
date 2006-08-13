@@ -11,11 +11,30 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
+
+import freenet.config.FilePersistentConfig;
 
 public class Systray {
 	private boolean isNodeAlive;
+	private static FilePersistentConfig cfg;
 	
 	public static void main(String[] args) {
+		// Load the config
+		File configFilename = new File("systray.ini");
+		try{
+    		cfg = new FilePersistentConfig(configFilename);	
+    	}catch(IOException e){
+    		System.out.println("Error : "+e);
+    		e.printStackTrace();
+    		System.exit(-1);
+    	}
+    	cfg.finishedInit();
+    	cfg.store();
+
+    	//SubConfig loggingConfig = new SubConfig("node", cfg);
+    	
 		Systray s = new Systray();
 	}
 	
@@ -25,13 +44,13 @@ public class Systray {
 		if (SystemTray.isSupported()) {
 			final TrayIcon trayIcon;
 			SystemTray tray = SystemTray.getSystemTray();
-			Image image = Toolkit.getDefaultToolkit().getImage("logo.jpg");
+			Image image = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/freenet/systray/resources/logo.jpg"));
 
 			MouseListener mouseListener = new MouseListener() {
 
 				public void mouseClicked(MouseEvent e) {
 					System.out.println("Tray Icon - Mouse clicked!");
-					if(isNodeAlive && (e.getButton() == MouseEvent.BUTTON1))
+					if(isNodeAlive && (e.getButton() == 1))
 						BareBonesBrowserLaunch.launch("http://127.0.0.1:8888/");
 				}
 
@@ -88,11 +107,14 @@ public class Systray {
 			openConfigItem.addActionListener(openConfigListener);
 			openConfigItem.setEnabled(false);
 			popup.add(exitItem);
+			popup.addSeparator();
 			popup.add(openFproxyItem);
 			popup.add(openWebsiteItem);
+			popup.addSeparator();
 			popup.add(openConfigItem);
+			popup.setLabel("Freenet 0.7");
 
-			trayIcon = new TrayIcon(image, "Tray Demo", popup);
+			trayIcon = new TrayIcon(image, "Freenet 0.7", popup);
 
 			ActionListener actionListener = new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
